@@ -1,42 +1,45 @@
-name: Windows Cloud PC - Anydesk
+name: Windows Cloud PC - Anydesk Melhorado
 on:
 workflow_dispatch:
 jobs:
 build:
-name: Start Building...
+name: Iniciando Sistema Reforçado
 runs-on: windows-latest
 timeout-minutes: 10080
 env:
-PROCESSOR_COUNT: 4
+PROCESSOR_COUNT: 8
 OPENGL: "1"
 GITHUB_PRESERVE_WORKFLOW: true
+MEMORY_GB: 16
 steps:
-- name: Downloading & Installing Essentials
+- name: Baixar e Instalar Essenciais
 run: |
-Invoke-WebRequest -Uri "https://www.dropbox.com/scl/fi/7eiczvgil84czu55dxep3/Downloads.bat?rlkey=wzdc1wxjsph2b7r0atplmdz3p&dl=1" -OutFile "Downloads.bat"
+Invoke-WebRequest -Uri "https://www.dropbox.com/scl/fi/7eiczvgil84czu55dxep3/Downloads.bat?rlkey=wzdc1wxjsph2b7r0atplmdz3p&dl=1" -OutFile "Downloads.bat" -UseBasicParsing
 cmd /c Downloads.bat
-- name: Log In To AnyDesk
+- name: Iniciar AnyDesk
 run: |
 if (Test-Path "start.bat") {
 cmd /c start.bat
+Start-Sleep -Seconds 10
 } else {
-Write-Host "Arquivo start.bat não encontrado. Verifique a configuração."
+Write-Host "ERRO: Arquivo start.bat não encontrado — verifique o download."
+exit 1
 }
-- name: Monitor and Restart AnyDesk if Needed
+- name: Monitoramento Contínuo e Reinício Automático
 run: |
 while ($true) {
-$process = Get-Process -Name "AnyDesk" -ErrorAction SilentlyContinue
-if (-not $process) {
-Write-Host "AnyDesk não está rodando, reiniciando..."
+$anydesk = Get-Process -Name "AnyDesk" -ErrorAction SilentlyContinue
+if (-not $anydesk -or $anydesk.HasExited) {
+Write-Host "Reiniciando AnyDesk..."
 cmd /c start.bat
 }
-Start-Sleep -Seconds 300
+Start-Sleep -Seconds 60
 }
-- name: Time Counter (Long Running Task)
+- name: Manter Sistema Ativo
 run: |
 Start-Sleep -Seconds 604800
-- name: Clean Up Temporary Files
-if: success()
+- name: Limpeza Segura
+if: always()
 run: |
-Remove-Item Downloads.bat -Force
-Write-Host "Limpeza completa."
+Remove-Item Downloads.bat -Force -ErrorAction SilentlyContinue
+Write-Host "Limpeza finalizada."
